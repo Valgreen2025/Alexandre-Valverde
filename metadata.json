@@ -1,0 +1,6 @@
+{
+  "name": "Assimil English - Aprenda Inglês Americano",
+  "description": "Aplicativo gamificado para aprender inglês americano com o método intuitivo Assimil: diálogos em subseções, flashcards interativos, reconhecimento de fala com feedback fonético, exercícios de lacunas, tutor IA e histórico de progresso.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

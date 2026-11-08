@@ -1,0 +1,88 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Stores authenticated Google user profile and Assimil course progress.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Firebase Auth UID of the user",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name from Google account",
+          "maxLength": 120
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Verified Google email address",
+          "maxLength": 160
+        },
+        "photoUrl": {
+          "type": "string",
+          "description": "Profile picture URL from Google account",
+          "maxLength": 500
+        },
+        "streakDays": {
+          "type": "number",
+          "description": "Consecutive study days streak"
+        },
+        "lastStudyDate": {
+          "type": "string",
+          "description": "ISO date string YYYY-MM-DD of last study activity",
+          "maxLength": 20
+        },
+        "totalXp": {
+          "type": "number",
+          "description": "Total gamified experience points earned"
+        },
+        "currentLessonId": {
+          "type": "number",
+          "description": "Current active lesson ID (1 to 105)"
+        },
+        "dailyReminderEnabled": {
+          "type": "boolean",
+          "description": "Whether daily study notifications are enabled"
+        },
+        "dailyReminderTime": {
+          "type": "string",
+          "description": "Time of day for study reminder (HH:mm)",
+          "maxLength": 10
+        },
+        "history": {
+          "type": "object",
+          "description": "Map of lessonId to UserProgressRecord"
+        },
+        "achievements": {
+          "type": "array",
+          "description": "Unlocked achievement identifiers"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email",
+        "photoUrl",
+        "streakDays",
+        "totalXp",
+        "currentLessonId",
+        "dailyReminderEnabled",
+        "dailyReminderTime",
+        "history",
+        "achievements"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "Per-user private document storing Google account metadata and lesson progress."
+    }
+  }
+}

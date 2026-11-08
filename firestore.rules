@@ -1,0 +1,93 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidUserProfile(data, userId) {
+      return data.keys().hasAll([
+        'id',
+        'name',
+        'email',
+        'photoUrl',
+        'streakDays',
+        'totalXp',
+        'currentLessonId',
+        'dailyReminderEnabled',
+        'dailyReminderTime',
+        'history',
+        'achievements'
+      ]) &&
+      data.keys().hasOnly([
+        'id',
+        'name',
+        'email',
+        'photoUrl',
+        'streakDays',
+        'lastStudyDate',
+        'totalXp',
+        'currentLessonId',
+        'dailyReminderEnabled',
+        'dailyReminderTime',
+        'history',
+        'achievements'
+      ]) &&
+      data.id is string && data.id == userId && data.id.size() <= 128 &&
+      data.name is string && data.name.size() >= 1 && data.name.size() <= 120 &&
+      data.email is string && data.email.size() >= 3 && data.email.size() <= 160 &&
+      data.photoUrl is string && data.photoUrl.size() <= 500 &&
+      data.streakDays is number && data.streakDays >= 0 &&
+      (!('lastStudyDate' in data) || data.lastStudyDate == null || (data.lastStudyDate is string && data.lastStudyDate.size() <= 20)) &&
+      data.totalXp is number && data.totalXp >= 0 &&
+      data.currentLessonId is number && data.currentLessonId >= 1 && data.currentLessonId <= 105 &&
+      data.dailyReminderEnabled is bool &&
+      data.dailyReminderTime is string && data.dailyReminderTime.size() <= 10 &&
+      data.history is map && data.history.size() <= 120 &&
+      data.achievements is list && data.achievements.size() <= 50;
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow create: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming(), userId);
+      allow update: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming(), userId) &&
+        incoming().id == existing().id &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'name',
+          'email',
+          'photoUrl',
+          'streakDays',
+          'lastStudyDate',
+          'totalXp',
+          'currentLessonId',
+          'dailyReminderEnabled',
+          'dailyReminderTime',
+          'history',
+          'achievements'
+        ]);
+      allow delete: if false;
+    }
+  }
+}
